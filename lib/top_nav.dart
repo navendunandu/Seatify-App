@@ -12,8 +12,6 @@ class TopNav extends StatefulWidget implements PreferredSizeWidget {
    @override
      Widget build(BuildContext context) {
     return AppBar(
-            leading: IconButton(
-                onPressed: () {}, icon: const Icon(Icons.arrow_back_ios)),
             title: const Text(
                           'Seatify',
                           style: TextStyle(
@@ -30,10 +28,6 @@ class TopNav extends StatefulWidget implements PreferredSizeWidget {
                             ],
                           ),
                         ),
-            actions: [
-              IconButton(onPressed: (){}, icon: const Icon(Icons.settings)),
-              IconButton(onPressed: (){}, icon: const Icon(Icons.exit_to_app))
-            ],
             
           );
    }

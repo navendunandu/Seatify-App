@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_form/aboutus.dart';
 import 'package:flutter_form/usercomplaints.dart';
 import 'package:flutter_form/userfeedback.dart';
 import 'my_profile.dart';
@@ -86,7 +87,7 @@ class MyAccount extends StatelessWidget {
                 onTap: () {
                    Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => UserFeedback()),
+                    MaterialPageRoute(builder: (context) => UserFeedbacks()),
                   );/// Handle Feedbacks option
                 },
               ),
@@ -95,14 +96,17 @@ class MyAccount extends StatelessWidget {
               ),
               ListTile(
                 title: Text(
-                  'About',
+                  'About us',
                   style: TextStyle(
                     fontSize: 18,
                     color: Color.fromARGB(255, 20, 121, 113), // Text color
                   ),
                 ),
                 onTap: () {
-                  // Handle About option
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => AboutPage()),
+                  );// Handle About option
                 },
               ),
             ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_form/forgotpassword.dart';
 import 'package:flutter_form/sign_up.dart';
 import 'package:flutter_form/user_dashboard.dart';
 import 'dart:ui';
@@ -203,8 +204,40 @@ class _LoginScreenState extends State<LoginScreen> {
                                   MaterialStateProperty.all<Color>(Colors.teal),
                             ),
                           ),
+
+                          
                         ],
+                        
                       ),
+                      SizedBox(
+                        height: 50,
+                      ),
+                      GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const ForgotPassword()
+                              ),
+                            );
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Color.fromARGB(
+                                  255, 18, 127, 116), // Set background color
+                              borderRadius: BorderRadius.circular(
+                                  10), // Set border radius
+                            ),
+                            padding: EdgeInsets.all(
+                                10), // Add padding for better appearance
+                            child: const Text(
+                              'Change Password',
+                              style: TextStyle(
+                                  color:
+                                      Colors.white), // Set text color to white
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_form/eachbooking.dart';
 
 class MyBookings extends StatefulWidget {
   const MyBookings({Key? key}) : super(key: key);
@@ -35,80 +36,76 @@ class _MyBookingsState extends State<MyBookings> {
   }
 
   Future<void> _fetchBookingData() async {
-    try {
-      final user = _auth.currentUser;
-      final userId = user?.uid;
-      if (userId != null) {
-        QuerySnapshot userSnapshot = await db
-            .collection('tbl_user')
-            .where('user_id', isEqualTo: userId)
+  try {
+    final user = _auth.currentUser;
+    final userId = user?.uid;
+    if (userId != null) {
+      QuerySnapshot userSnapshot = await db
+          .collection('tbl_user')
+          .where('user_id', isEqualTo: userId)
+          .get();
+      if (userSnapshot.docs.isNotEmpty) {
+        String uDoc = userSnapshot.docs.first.id;
+        // Fetch all bookings for the current user
+        QuerySnapshot bookingSnapshot = await db
+            .collection('tbl_booking')
+            .where('user_id', isEqualTo: uDoc)
             .get();
-        if (userSnapshot.docs.isNotEmpty) {
-          String uDoc = userSnapshot.docs.first.id;
-
-          // Fetch all bookings for the current user
-          QuerySnapshot bookingSnapshot = await db
-              .collection('tbl_booking')
-              .where('user_id', isEqualTo: uDoc)
-              .get();
-
-          // Filter the bookings based on the booking status
-          List<Map<String, dynamic>> upcomingBookings = [];
-          List<Map<String, dynamic>> previousBookings = [];
-          for (var doc in bookingSnapshot.docs) {
-            Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-            if (data['booking_status'] > 0) {
-              DocumentSnapshot scheduleDoc = await db
-                  .collection('tbl_schedule')
-                  .doc(data['schedule_id'])
-                  .get();
-              DocumentSnapshot fromplaceDoc =
-                  await db.collection('tbl_place').doc(data['fromplace']).get();
-              if (fromplaceDoc.exists) {
-                Map<String, dynamic> fromData =
-                    fromplaceDoc.data() as Map<String, dynamic>;
-                data['from'] = fromData["place_name"];
-              }
-              DocumentSnapshot toplaceDoc =
-                  await db.collection('tbl_place').doc(data['toplace']).get();
-              if (toplaceDoc.exists) {
-                Map<String, dynamic> toData =
-                    toplaceDoc.data() as Map<String, dynamic>;
-                data['to'] = toData["place_name"];
-              }
-              if (scheduleDoc.exists) {
-                Map<String, dynamic> scheduleData =
-                    scheduleDoc.data() as Map<String, dynamic>;
-                data['id'] = doc.id;
-                data['scheddate'] = scheduleData["date_scheduled"];
-                DateTime dataDate = DateTime.parse(data['scheddate']);
-                DateTime currentDate = DateTime.parse(formattedDate);
-
-                if (dataDate.isAfter(currentDate)) {
-                  upcomingBookings.add(data);
-                } else {
-                  previousBookings.add(data);
-                }
+        // Filter the bookings based on the booking status
+        List<Map<String, dynamic>> upcomingBookings = [];
+        List<Map<String, dynamic>> previousBookings = [];
+        for (var doc in bookingSnapshot.docs) {
+          Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+          data['bookingId'] = doc.id; // Add the document ID
+          if (data['booking_status'] > 0) {
+            DocumentSnapshot scheduleDoc = await db
+                .collection('tbl_schedule')
+                .doc(data['schedule_id'])
+                .get();
+            DocumentSnapshot fromplaceDoc =
+                await db.collection('tbl_place').doc(data['fromplace']).get();
+            if (fromplaceDoc.exists) {
+              Map<String, dynamic> fromData =
+                  fromplaceDoc.data() as Map<String, dynamic>;
+              data['from'] = fromData["place_name"];
+            }
+            DocumentSnapshot toplaceDoc =
+                await db.collection('tbl_place').doc(data['toplace']).get();
+            if (toplaceDoc.exists) {
+              Map<String, dynamic> toData =
+                  toplaceDoc.data() as Map<String, dynamic>;
+              data['to'] = toData["place_name"];
+            }
+            if (scheduleDoc.exists) {
+              Map<String, dynamic> scheduleData =
+                  scheduleDoc.data() as Map<String, dynamic>;
+              data['scheddate'] = scheduleData["date_scheduled"];
+              DateTime dataDate = DateTime.parse(data['scheddate']);
+              DateTime currentDate = DateTime.parse(formattedDate);
+              if (dataDate.isAfter(currentDate)) {
+                upcomingBookings.add(data);
+              } else {
+                previousBookings.add(data);
               }
             }
           }
-
-          setState(() {
-            _bookingData1 = upcomingBookings;
-            _bookingData2 = previousBookings;
-          });
-        } else {
-          // Handle the case where there is no user document
-          print('No user document found');
         }
+        setState(() {
+          _bookingData1 = upcomingBookings;
+          _bookingData2 = previousBookings;
+        });
       } else {
-        // Handle the case where the user is not logged in
-        print('User is not logged in');
+        // Handle the case where there is no user document
+        print('No user document found');
       }
-    } catch (e) {
-      print('Error fetching booking data: $e');
+    } else {
+      // Handle the case where the user is not logged in
+      print('User is not logged in');
     }
+  } catch (e) {
+    print('Error fetching booking data: $e');
   }
+}
 
   Widget build(BuildContext context) {
     return Container(
@@ -144,7 +141,14 @@ class _MyBookingsState extends State<MyBookings> {
                       return Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: GestureDetector(
-                          onTap: () {},
+                          onTap: () {
+                             Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      EachBooking(id: booking['bookingId']),
+                                ));
+                          },
                           child: Card(
                             child: Padding(
                               padding: const EdgeInsets.all(16.0),
@@ -161,7 +165,7 @@ class _MyBookingsState extends State<MyBookings> {
                                     ),
                                   ),
                                   Text(
-                                    'Booking Date: ${booking['scheddate']}',
+                                    'Scheduled for: ${booking['scheddate']}',
                                     style: TextStyle(
                                       fontSize: 16.0,
                                     ),
@@ -214,7 +218,14 @@ class _MyBookingsState extends State<MyBookings> {
                       return Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: GestureDetector(
-                          onTap: () {},
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      EachBooking(id: booking['bookingId']),
+                                ));
+                          },
                           child: Card(
                             child: Padding(
                               padding: const EdgeInsets.all(16.0),
@@ -231,7 +242,7 @@ class _MyBookingsState extends State<MyBookings> {
                                     ),
                                   ),
                                   Text(
-                                    'Booking Date: ${booking['scheddate']}',
+                                    'Scheduled for: ${booking['scheddate']}',
                                     style: TextStyle(
                                       fontSize: 16.0,
                                     ),
