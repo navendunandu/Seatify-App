@@ -106,7 +106,7 @@ class _BookingState extends State<Booking> {
                 stream: FirebaseFirestore.instance
                     .collection('tbl_booking')
                     .where('schedule_id', isEqualTo: widget.sid)
-                    .where('booking_status', isNotEqualTo: 0)
+                    .where('booking_status', isEqualTo: 1)
                     .snapshots()
                     .map((querySnapshot) {
                   List<String> bookingIds =

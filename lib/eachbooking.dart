@@ -1,6 +1,7 @@
 import 'dart:ui'; // Import this to use ImageFilter for blur effect
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_form/my_booking.dart';
 import 'package:intl/intl.dart';
 
 class EachBooking extends StatefulWidget {
@@ -167,6 +168,25 @@ class _EachBookingState extends State<EachBooking> {
     return null;
   }
 
+  Future<void> cancelBooking() async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('tbl_booking')
+          .doc(widget.id)
+          .update({'booking_status': 2});
+      print('Booking cancelled successfully');
+      setState(() {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => EachBooking(id:widget.id ),
+            ));
+      });
+    } catch (e) {
+      print('Error cancelling booking: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (bookingData.isEmpty) {
@@ -180,83 +200,105 @@ class _EachBookingState extends State<EachBooking> {
       );
     }
 
+    // Check if booking status is 1 and scheduled date is greater than today
+    bool canCancel = bookingData['booking_status'] == 1 &&
+        DateTime.parse(bookingData['schedDate']).isAfter(DateTime.now());
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Bus Ticket'),
         backgroundColor: Colors.transparent, // Make app bar transparent
-        elevation: 0, 
+        elevation: 0,
       ),
       extendBodyBehindAppBar: true,
       body: Container(
+        alignment: Alignment.center,
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage('assets/Designer.png'), // Add your background image
+            image:
+                AssetImage('assets/Designer.png'), // Add your background image
             fit: BoxFit.cover,
           ),
         ),
-        child: Center(
-          child: Container(
-            margin: EdgeInsets.all(20),
-            padding: EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.9), // Semi-transparent white background
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.5),
-                  spreadRadius: 5,
-                  blurRadius: 7,
-                  offset: Offset(0, 3), // changes position of shadow
+        child: Container(
+          padding: EdgeInsets.all(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                margin: EdgeInsets.all(20),
+                padding: EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white
+                      .withOpacity(0.9), // Semi-transparent white background
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5),
+                      spreadRadius: 5,
+                      blurRadius: 7,
+                      offset: Offset(0, 3), // changes position of shadow
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'BUS TICKET',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 24,
-                    color:  const Color.fromARGB(255, 20, 86, 80),
-                  ),
-                ),
-                SizedBox(height: 10),
-                Text('From: ${bookingData['fromPlace']}'),
-              Text('To: ${bookingData['toPlace']}'),
-              Text(
-                'Bus : ${bookingData['bus_name']}',
-                style: TextStyle(
-                  color:Colors.blueAccent,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16.0,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'BUS TICKET',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 24,
+                        color: const Color.fromARGB(255, 20, 86, 80),
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    Text('From: ${bookingData['fromPlace']}'),
+                    Text('To: ${bookingData['toPlace']}'),
+                    Text(
+                      'Bus : ${bookingData['bus_name']}',
+                      style: TextStyle(
+                        color: Colors.blueAccent,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16.0,
+                      ),
+                    ),
+                    Text('Route: ${bookingData['Route_Name']}'),
+                    Text(
+                        'Number of Seats Booked: ${bookingData['numberOfSeats']}'),
+                    Text('Seat Numbers: ${bookingData['seatNumbers']}'),
+                    Text(
+                      'Price: ${bookingData['booking_price']}/-',
+                      style: TextStyle(
+                        color: Color.fromARGB(255, 32, 187, 27),
+                        fontSize: 16.0,
+                      ),
+                    ),
+                    Text(
+                      'Departure Time: ${bookingData['Departure']}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14.0,
+                      ),
+                    ),
+                    Text(
+                      'Arrival Time: ${bookingData['Arrival']}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14.0,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              Text('Route: ${bookingData['Route_Name']}'),
-              Text('Number of Seats Booked: ${bookingData['numberOfSeats']}'),
-              Text('Seat Numbers: ${bookingData['seatNumbers']}'),
-              Text(
-                'Price: ${bookingData['booking_price']}/-',
-                style: TextStyle(
-                  color: Color.fromARGB(255, 32, 187, 27),
-                  fontSize: 16.0,
+              if (canCancel)
+                ElevatedButton(
+                  onPressed: cancelBooking,
+                  child: Text('Cancel'),
                 ),
-              ),
-              Text('Departure Time: ${bookingData['Departure']}'
-              ,
-                style: TextStyle(
-                 fontWeight: FontWeight.bold,
-                  fontSize: 14.0,
-                ),),
-              Text('Arrival Time: ${bookingData['Arrival']}'
-              ,
-                style: TextStyle(
-                 fontWeight: FontWeight.bold,
-                  fontSize: 14.0,
-                ),),
-              ],
-            ),
+            ],
           ),
         ),
       ),
