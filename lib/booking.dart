@@ -39,12 +39,14 @@ class _BookingState extends State<Booking> {
             .get();
 
     final doc = querySnapshot.docs.first;
-    final userDocumentId = doc.id; // Get the document ID
-
+    final userDocumentId = doc.id;
+    double bookingPrice = double.parse(widget.amt);
+     // Get the document ID
     DocumentReference docRef = await FirebaseFirestore.instance
         .collection('tbl_booking')
         .add({
-      'booking_price': int.parse(widget.amt),
+
+      'booking_price': bookingPrice.toInt(),
       'booking_status': 0,
       'booking_timestamp': DateTime.now(),
       'fromplace': widget.fid,
@@ -104,6 +106,7 @@ class _BookingState extends State<Booking> {
                 stream: FirebaseFirestore.instance
                     .collection('tbl_booking')
                     .where('schedule_id', isEqualTo: widget.sid)
+                    .where('booking_status', isNotEqualTo: 0)
                     .snapshots()
                     .map((querySnapshot) {
                   List<String> bookingIds =
